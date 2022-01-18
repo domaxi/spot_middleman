@@ -1,3 +1,5 @@
+from sqlite3 import Timestamp
+from time import time
 from flask import Flask, request
 from flask_restful import Api, Resource, reqparse, abort
 import json
@@ -11,55 +13,8 @@ FRAME_BUFFER_SIZE = 5
 # variable that contains the frames. 
 # the lastest frame will be appended in the first element.
 # older frames will be shifted to the higher index.
+
 frames = [
-    { 
-        "id" : 0,
-        "cameras" : [
-            "Camera_1", "Camera_2"
-        ],
-        "objects" : [
-            {
-                "Object_1" :
-                    {
-                        "X" : 20, 
-                        "Y" : 30, 
-                        "Z" : 40
-                    }
-            },
-            {
-                "Object_2" :
-                    {
-                        "X" : 20, 
-                        "Y" : 30, 
-                        "Z" : 40
-                    }
-            } 
-        ]
-    },
-    { 
-        "id" : 2,
-        "cameras" : [
-            "Camera_1", "Camera_2"
-        ],
-        "objects" : [
-            {
-                "Object_1" :
-                    {
-                        "X" : 30, 
-                        "Y" : 40, 
-                        "Z" : 50
-                    }
-            },
-            {
-                "Object_2" :
-                    {
-                        "X" : 200, 
-                        "Y" : 300, 
-                        "Z" : 400
-                    }
-            } 
-        ]
-    }
 ]
 
 image = [
@@ -80,13 +35,8 @@ class LatestFrame(Resource):
         check_existing_frame()
         args = frames_put_args.parse_args()
         shift_frame_index(get_list_size())
-        frames[0] = args
-        print(get_list_size())
-        return "Latest frame sucessfully added",201
-
-    def list(self):
-        # returns a python list that contains all the frames.
-        return frames
+        append_frames(args)
+        return "Latest frame sucessfully added", 201
 
 #checks if there are already frames in the buffer
 def check_frame_buffer():
@@ -103,12 +53,23 @@ def get_list_size():
 
 # shifts the elements of the list by one index
 def shift_frame_index(list_size):
-    # appends the list until the maxiumum frame size.
-    if (list_size < FRAME_BUFFER_SIZE):
-        frames.append(frames[list_size - 1])
-    # shifts the frames by one index place.
-    for i in reversed(range(0,list_size)):
-        frames[i+1] = frames[i]
+    # initialize the list if the list is empty.
+    if(list_size == 0):
+        return
+    else:
+        # appends the list until the maxiumum frame size.
+        if (list_size < FRAME_BUFFER_SIZE):
+            frames.append(frames[list_size - 1])
+        # shifts the frames by one index place.
+        for i in reversed(range(0,list_size)):
+            frames[i+1] = frames[i]
+
+def append_frames(args):
+    if(get_list_size() == 0):
+        print("Adding the first element to the list")
+        frames.append(args)
+    else:
+        frames[0] =  args
 
 # returns an error if the frame added already exist.
 def check_existing_frame():
@@ -118,9 +79,10 @@ def check_existing_frame():
 
 # JSON parsesr for frames
 frames_put_args = reqparse.RequestParser()
-frames_put_args.add_argument("id", type=int, help="Frame ID number", required=True)
-frames_put_args.add_argument("cameras", type=str, action = 'append', help="Number of cameras in one frame", required=True)
-frames_put_args.add_argument("objects", type=str, action = 'append', help="Number of objects in one frame", required=True)
+frames_put_args.add_argument("Detections", type=str, action= 'append', help="Please provide camera geolocation", required=True)
+# frames_put_args.add_argument("ID", type=int, action = 'append', help="Please provide frame ID", required=True)
+# frames_put_args.add_argument("Timestamp", type=Timestamp, action = 'append', help="Please provide the object data", required=True)
+# frames_put_args.add_argument("XYZ-Coordinates", type=float, action = 'append', help="Please provide the object data", required=True)
 
 # Converter class to handle conversion from relative to absolute position
 class Converter(Resource):

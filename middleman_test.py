@@ -1,32 +1,12 @@
 import requests
+import json
 
 BASE = "http://127.0.0.1:5000/"
 
-data = { 
-    "id" : 1,
-    "cameras" : [
-        "Camera_1", "Camera_2"
-    ],
-    "objects" : [
-        {
-            "Object_1" :
-                {
-                    "X" : 20, 
-                    "Y" : 30, 
-                    "Z" : 40
-                }
-        },
-        {
-            "Object_2" :
-                {
-                    "X" : 20, 
-                    "Y" : 30, 
-                    "Z" : 40
-                }
-        } 
-    ]
-    
-}
+file = open("example.json")
+
+data = json.load(file)
+
 # FRAMES
 # API call test and examples
 # GET method
@@ -34,7 +14,6 @@ data = {
 #input()
 # POST method
 response = requests.post(BASE + "latestframe", json = data)
-
 # List all the elements in the list
 response = requests.get(BASE + "listframes")
 print(response.json())
