@@ -20,11 +20,11 @@ This process can be observed in the following flow chart:
 
 <b>Latestframe & Listframe</b>
 
-![This is a flowchart showing the process for the data stream](/assets/images/Data Stream.png)
+![This is a flowchart showing the process for the data stream](https://github.com/domaxi/spot_middleman/assets/images/Data Stream.png)
 
 <b>Convert Coordinates</b>
 
-![This is a flowchart showing the process for the convert function](/assets/images/Convert.png)
+![This is a flowchart showing the process for the convert function](https://github.com/domaxi/spot_middleman/assets/images/Convert.png)
 
 ## Format of JSON Packet
 ````
