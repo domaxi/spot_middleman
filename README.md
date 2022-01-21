@@ -1,6 +1,6 @@
 # spot_middleman
 
-Spot middeleman is a Python applicaion that handles the information flow between Spot-It-3D and the client.
+Spot Middleman is a Python application that handles the information flow between SPOT-IT-3D and the client.
 
 ## Installation Guide
 Run the installation script to install the dependencies.
@@ -12,23 +12,19 @@ Run the server using this command:
 ```
 python3 server.py
 ```
-# SPOT-IT-3D MIDDLEMAN DOCUMENTATION
-SPOT-IT-3D Middleman is a Python application that handles the information flow between SPOT-IT-3D and the client. SPOT-IT-3D will output frames with annotated information, which will be POST-ed onto the middleman. GET requests can be sent to the middleman to retrieve these frames. An added functionality is the conversion of relative coordinates to absolute coordinates in Latitude and Longitude, given a specific set of base coordinates. The following will document the various methods used.
-> Base URL: " "
+# Documentation
+SPOT-IT-3D will output frames with annotated information, which will be POST-ed onto the middleman. GET requests can be sent to the middleman to retrieve these frames. An added functionality is the conversion of relative coordinates to absolute coordinates in Latitude and Longitude, given a specific set of base coordinates. The following will document the various methods used.
+> Base URL: "localhost:5000"
 
 This process can be observed in the following flow chart:
 
 <b>Latestframe & Listframe</b>
-```mermaid
-graph LR
-A[SPOT-IT-3D] --POST--> B{MIDDLEMAN}
-C(CLIENT) --GET--> B{MIDDLEMAN} --JSON DATA--> C(CLIENT)
-```
+
+![This is a flowchart showing the process for the data stream](/assets/images/Data Stream.png)
+
 <b>Convert Coordinates</b>
-```mermaid
-graph LR
-C(CLIENT) --XYZ COORD--> B(MIDDLEMAN) --LAT/LONG--> C(CLIENT)
-```
+
+![This is a flowchart showing the process for the convert function](/assets/images/Convert.png)
 
 ## Format of JSON Packet
 ````
@@ -92,10 +88,11 @@ C(CLIENT) --XYZ COORD--> B(MIDDLEMAN) --LAT/LONG--> C(CLIENT)
 
 ## Latest Frame
 ````>> /latestframe ````
-#### ==GET==
+#### == GET ==
 Returns JSON Object
 Returns the latest frame available in the middleman.
 
+\~Error Handling\~
 - **Empty Buffer**
 If there is no frame in the buffer, it will return:
 > {'error': '404 Not Found: Frame not found. There is no frame(s) added to the frame buffer.'}
@@ -108,7 +105,7 @@ If there is no frame in the buffer, it will return:
  - **Additional Parameters In Request**
  The additional parameters will be discarded. The request parser only recognizes "Detections" as the argument.
  
-#### ==POST==
+#### == POST ==
 Adds JSON object to the buffer array.  
 If the buffer array is full (based on buffer size), the oldest frame will be overridden.  
 This method takes in 3 main arguments:
@@ -119,6 +116,7 @@ Number of cameras in one frame. **This field is required.**
 ````objects````
 Number of objects in one frame. **This field is required.**
 
+\~Error Handling\~
 - **Empty Frame**
 An empty frame is posted to the middleman. The JSON packet has an empty "Detections" field.
 > {'error': {'Detections': 'Please provide detection data in the request'}}
@@ -131,10 +129,12 @@ A file of filetype other than JSON is posted to the middleman.
 
 ## List Frames
 ````>> /listframes ````
-#### ==GET==
+#### == GET ==
 Returns a JSON object.  
 Returns the array of all frames in the buffer.  
 Maximum size of array is the maximum size of the buffer.
+
+\~Error Handling\~
 - **Empty Buffer**
 If there is no frame in the buffer, it will return:
 > {'error': '404 Not Found: Frame not found. There is no frame(s) added to the frame buffer.'}
@@ -148,22 +148,33 @@ If there is no frame in the buffer, it will return:
  The additional parameters will be discarded. The request parser only recognizes "Detections" as the argument.
 ## Convert
 ````>> /convert````
-#### ==POST==
+#### == POST ==
 Returns JSON object.  
 Returns the absolute position based on the relative position and benchmark position of cameras.  
 This method takes in five arguments:
+
 ````base_lat````
-Range from -90 degrees to +90 degrees
+
+Ranges from -90 degrees to +90 degrees
+
 ````base_long````
-Range from -180 degrees to +180 degrees
+
+Ranges from -180 degrees to +180 degrees
+
 > Latitude and Longitude are in units of degrees, arc-minutes, and arc-seconds
+
 > 1 degree = 60 arc-minutes
+
 > 1 arc-minute = 60 arc-seconds
 
 ````object_x````
-Range from -inf to +inf
-````object_z````
-Range from 0 to +inf
-````heading````
-Range from 0 to 360 degrees
 
+Ranges from -inf to +inf
+
+````object_z````
+
+Ranges from 0 to +inf
+
+````heading````
+
+Ranges from 0 to 360 degrees
