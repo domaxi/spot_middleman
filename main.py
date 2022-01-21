@@ -2,6 +2,7 @@ from sqlite3 import Timestamp
 from time import time
 from flask import Flask, request, jsonify
 from flask_restful import Api, Resource, reqparse, abort
+import math
 import json
 
 app = Flask(__name__)
@@ -9,6 +10,7 @@ api = Api(app)
 
 # constants
 FRAME_BUFFER_SIZE = 5
+METER_TO_ARC_SECONDS_CONST = 30.8
 
 # variable that contains the frames. 
 # the lastest frame will be appended in the first element.
@@ -82,38 +84,102 @@ frames_put_args.add_argument("Detections", type=str, action= 'append', help="Ple
 
 # Converter class to handle conversion from relative to absolute position
 class Converter(Resource):
-    def post():
+    def get(self):
         # posts the latitude and longitude of the camera position
         camera_location = lat_long_args.parse_args()
         data = convert_relative_to_absolute(camera_location)
-        return data
+        return data, 200
 
 # performs calcualtion on the lat long and the base psoe from spot it.
 # returns the list of the lat and long.
-def convert_relative_to_absolute(camera_location):
+def convert_relative_to_absolute(coordinates):
     
-    relative_position = get_latest_position()
-    camera_lat = camera_location["latitude"]
-    camera_long = camera_location["logitude"]
+    validate_camera_coordinates(coordinates)
+
+    base_lat = coordinates["base_lat"]
+    base_long = coordinates["base_long"]
+    heading = coordinates["heading"]
+    object_x = coordinates["object_x"]
+    object_z = coordinates["object_z"]
 
     # calcualtes the absolute lat long
-    absolute_lat = camera_lat + relative_position["X"]
-    absolute_long = camera_long + relative_position["Y"]
+    delta_lat_in_meters = object_z * math.cos(math.radians(heading)) + object_x * math.sin(math.radians(heading))
+    delta_long_in_meters = -object_z * math.sin(math.radians(heading)) + object_x * math.cos(math.radians(heading))
+
+    # converts the delta lat long to arc seconds
+    delta_lat_in_arc_seconds = delta_lat_in_meters / METER_TO_ARC_SECONDS_CONST
+    delta_long_in_arc_seconds = delta_long_in_meters / METER_TO_ARC_SECONDS_CONST
+    base_lat_in_arc_seconds = base_lat * 3600
+    base_long_in_arc_seconds = base_long * 3600
 
     # combines the absolute lat and absolute_long into json file
-    absolute_pose = [absolute_lat,absolute_long]
-    absolute_pose_json = json.dumps(absolute_pose)
+    absolute_pose = [base_lat_in_arc_seconds + delta_lat_in_arc_seconds, base_long_in_arc_seconds + delta_long_in_arc_seconds]
+    base_coordinates_lat = convert_to_dms(absolute_pose[0])
+    base_coordinates_long = convert_to_dms(absolute_pose[1])
+    
+    absolute_pose_json = json.dumps({"latitude":base_coordinates_lat, "longitude":base_coordinates_long})
 
     return absolute_pose_json
 
-def get_latest_position():
-    return
+def validate_camera_coordinates(coordinates):
+    print(coordinates)
+    # validates camera longitude
+    validate_base_long(float(coordinates["base_long"]))
+    validate_base_lat(float(coordinates["base_lat"]))
+    validate_heading(float(coordinates["heading"]))
+    validate_object_z(float(coordinates["object_z"]))
+
+
+def validate_base_long(longitude):
+    if (longitude < -180.0):
+        abort(406, error = '406 Not Acceptable: The base longitude must be more than -180 degrees, please check your input.')
+    if (longitude > 180.0):
+        abort(406, error = '406 Not Acceptable: The base longitude must be less than 180 degrees, please check your input.')
+
+def validate_base_lat(latitude):
+    if (latitude < -90.0):
+        abort(406, error = '406 Not Acceptable: The base latitude must be more than -90 degrees, please check your input.')
+    if (latitude > 90.0):
+        abort(406, error = '406 Not Acceptable: The base latitude must be less than 90 degrees, please check your input.')
+    
+def validate_heading(heading):
+    if (heading < 0.0):
+        abort(406, error = '406 Not Acceptable: The base heading must be between 0.0 and 360.0 degrees, please check your input.')
+
+def validate_object_z(obj_z):
+    if (obj_z < 0.0):
+        abort(406, error = '406 Not Acceptable: The base heading must be between 0.0 and infinity meters, please check your input.')
+
+# returns coordinates in a dictionary 
+# format of dictionary:
+# {
+#   "degreees" : <int:degrees>,
+#   "minutes"  : <int:minutes>,
+#   "seconds"  : <int:seconds>
+# }
+
+def convert_to_dms(degrees):
+    
+    # converts the degrees to degree seconds
+    d = int(degrees / 3600)
+    m = int((degrees - d*3600) / 60)
+    s = degrees - d*3600 - m*60
+
+    coordinate_in_dms = {
+        "degreees" : d,
+        "minutes"  : m,
+        "seconds"  : s
+   }
+
+    return coordinate_in_dms
 
 #JSON parser for lat long
-lat_long_args = reqparse.RequestParser()
-lat_long_args.add_argument("latitude", type=float, help =  "Please provide the latitude", required = True)
-lat_long_args.add_argument("longitude", type=float, help =  "Please provide the longitude", required = True)
+lat_long_args = reqparse.RequestParser(bundle_errors=True)
+lat_long_args.add_argument("base_lat", type=float, help =  "Please provide the latitude", required = True)
+lat_long_args.add_argument("base_long", type=float, help =  "Please provide the longitude", required = True)
 lat_long_args.add_argument("heading", type=float, help = "Please provide the heading", required = True)
+lat_long_args.add_argument("object_x", type=float, help = "Please provide the object x coordinate", required = True)
+lat_long_args.add_argument("object_z", type=float, help = "Please provide the object z coordinate", required = True)
 
 class ListFrames(Resource):
     def get(self):
