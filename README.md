@@ -33,22 +33,27 @@ This process can be observed in the following flow chart:
 	[
 		{
 			“Frame-Number” : <Frame No.>,
+			"Objects" :
 			[
-				“ID” : <ID No.>,
-				“XYZ-Coordinates :
-				[
-					<X-Coordinate>
-					<Y-Coordinate>
-					<Z-Coordinate>
-				]
+				{
+					“ID” : <ID No.>,
+					“XYZ-Coordinates :
+					[
+						<X-Coordinate>
+						<Y-Coordinate>
+						<Z-Coordinate>
+					]
+				}
 			,
-				“ID” : <ID No.>,
-				“XYZ-Coordinates :
-				[
-					<X-Coordinate>
-					<Y-Coordinate>
-					<Z-Coordinate>
-				]
+				{
+					“ID” : <ID No.>,
+					“XYZ-Coordinates :
+					[
+						<X-Coordinate>
+						<Y-Coordinate>
+						<Z-Coordinate>
+					]
+				}
 			],
 			<etc.>
 		},
@@ -65,21 +70,27 @@ This process can be observed in the following flow chart:
 	[
 		{
 			"Frame-Number" : "1",
+			"Objects" :
 			[
-				"ID" : 0,
-				"XYZ-Coordinates" : 
-				[
-					-5.5999999999999996,
-					3.8100000000000001,
-					10.17
-				],
-				"ID" : 1,
-				"XYZ-Coordinates" : 
-				[
-					-5.5999999999999996,
-					3.8100000000000001,
-					10.17
-				]
+				{
+					"ID" : 0,
+					"XYZ-Coordinates" : 
+					[
+						-5.5999999999999996,
+						3.8100000000000001,
+						10.17
+					]
+				}
+			,
+				{
+					"ID" : 1,
+					"XYZ-Coordinates" : 
+					[
+						-5.5999999999999996,
+						3.8100000000000001,
+						10.17
+					]
+				}
 			]
 		}
 	]
