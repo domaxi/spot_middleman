@@ -19,7 +19,7 @@ coordinate_data = json.load(coordinate_file)
 
 # POST method ("/list")
 # Posts the data to the server
-# response = requests.post(BASE + "latestframe", json = data)
+response = requests.post(BASE + "latestframe", json = data)
 
 # LIST method ("/list")
 # List all the elements in the list
@@ -27,8 +27,8 @@ coordinate_data = json.load(coordinate_file)
 # print(response.json())
 
 # CONVERT method ("/convert")
-response = requests.get(BASE + "convert", coordinate_data)
-print (response.json())
+#response = requests.get(BASE + "convert", coordinate_data)
+#print (response.json())
 
 
 print(response.json())

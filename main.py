@@ -67,7 +67,7 @@ def shift_frame_index(list_size):
         if (list_size < FRAME_BUFFER_SIZE):
             frames.append(frames[list_size - 1])
         # shifts the frames by one index place.
-        for i in reversed(range(0,list_size)):
+        for i in reversed(range(0,list_size - 1)):
             frames[i+1] = frames[i]
 
 def append_frames(args):
