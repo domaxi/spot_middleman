@@ -1,7 +1,6 @@
-from sqlite3 import Timestamp
-from time import time
 from flask import Flask, request, jsonify
 from flask_restful import Api, Resource, reqparse, abort
+import base64
 import math
 import json
 
@@ -11,6 +10,7 @@ api = Api(app)
 # constants
 FRAME_BUFFER_SIZE = 5
 METER_TO_ARC_SECONDS_CONST = 30.8
+IMAGE_PATH = "image.jpg"
 
 # variable that contains the frames. 
 # the lastest frame will be appended in the first element.
@@ -187,10 +187,36 @@ class ListFrames(Resource):
         frames_json = json.dumps(frames)
         return frames_json, 200
 
+class Image(Resource):
+    # get method to retreive the latest image byte array.
+    def get(self):
+        print(image)
+        check_existing_image()
+        image_json = json.dumps(str(image[0]))
+        return image_json, 200
+
+    # post method to save the latest image to the server
+    def post(self):
+        # reads the image from the folder.
+        try:
+            # opens the file where the image is located.
+            with open(IMAGE_PATH,'rb') as img_obj:
+                content = img_obj.read()
+                img_str = base64.b64encode(content)
+                image.append(img_str)
+        except FileNotFoundError:
+            msg = "Sorry, the file at " + IMAGE_PATH + "does not exist."
+            print(msg)
+
+def check_existing_image():
+    if(image == None):
+        abort (404, "Frame not found")
+
 # api.add_resource(Frame, "/frame")
 api.add_resource(LatestFrame, "/latestframe")
 api.add_resource(Converter, "/convert")
 api.add_resource(ListFrames, "/listframes")
+api.add_resource(Image, "/image")
 
 @app.errorhandler(404)
 def resource_not_found(e):
